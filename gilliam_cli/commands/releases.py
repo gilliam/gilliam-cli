@@ -17,39 +17,43 @@ import yaml
 import sys
 
 from ..command import Command, ListerCommand
-
-
-def last(it, default=None):
-    for default in it:
-        pass
-    return default
+from ..scheduler import Scheduler
 
 
 class Releases(ListerCommand):
     """show releases in formation"""
 
-    def __init__(self, parser):
-        parser.add_argument('--dump', metavar="NAME")
+    requires = {'formation': True}
 
-    def _header(self):
-        if os.isatty(sys.stdout.fileno()):
-            print "%-9s %-15s %s" % ("name", "author", "message")
-            print "%-9s %-15s %s" % ("-" * 9, "-" * 15, "-" * 40)
-
-    def _print(self, release, options):
-        print "%-9s %-15s %s" % (release['name'], release.get(
-                'author', 'unknown'), release.get('message', ''))
+    FIELDS = ('name', 'author', 'message')
 
     requires = {'formation': True}
 
     def take_action(self, options):
         """Handle the command."""
+        def it(scheduler):
+            for instance in scheduler.releases(self.app.config.formation):
+                yield [instance.get(f) for f in self.FIELDS]
 
-        scheduler = config.scheduler()
+        return self.FIELDS, it(self.app.config.scheduler())
 
-        if options.dump:
-            return self._dump(config, scheduler, options.dump)
 
-        self._header()
-        for release in scheduler.releases(config.formation):
-            self._print(release, options)
+class DumpRelease(Command):
+    """dump a release"""
+
+    requires = {'formation': True}
+
+    def get_parser(self, prog_name):
+        parser = Command.get_parser(self, prog_name)
+        parser.add_argument(
+            '-r', '--release',
+            help="release name"
+            )
+        return parser
+
+    def take_action(self, options):
+        formation = Scheduler(self.app.config.scheduler()).formation(
+            self.app.config.formation)
+        release = (formation.find_release(options.release) if options.release
+                   else formation.last_release)
+        yaml.safe_dump(release, self.app.stdout, default_flow_style=False)

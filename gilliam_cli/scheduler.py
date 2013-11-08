@@ -20,7 +20,7 @@ import time
 from gilliam.errors import ConflictError
 
 
-def _merge_service_env(self, base, services):
+def _merge_service_env(base, services):
     """Given two sets of service environments, copy environment
     variables from `base` to `services`.
     """
@@ -55,16 +55,16 @@ class Formation(object):
                 return release
         return None
 
-    def release(self, author, message, services,
-                merge_env=True):
+    def release(self, author, message, services, merge_env=True):
         while True:
             current = self.last_release
             try:
+                print "RELEASE", current, services
                 response = self.client.create_release(
                     self.formation, self._name_release(current),
                     author or getpass.getuser(), message,
                     _merge_service_env(current.get('services', {}), services)
-                    if merge_env and current else services
+                    if (merge_env and current) else services
                     )
             except ConflictError:
                 continue

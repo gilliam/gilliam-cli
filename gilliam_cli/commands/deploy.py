@@ -30,7 +30,7 @@ class _ServicesBuilder(object):
         self.config = config
         self.service_manager = service_manager
 
-    def build(self, defn):
+    def build(self, defn, push_image=True):
         """Build services from a project definition (contents of the
         `gilliam.yml` file).
 
@@ -47,12 +47,13 @@ class _ServicesBuilder(object):
 
         if 'processes' in defn:
             self._build_processes(
-                self.config.project_dir, defn['processes'], services
+                self.config.project_dir, defn['processes'], services,
+                push_image
                 )
 
         return services
 
-    def _build_processes(self, dir, processes, services):
+    def _build_processes(self, dir, processes, services, push_image):
         """Build services for processes.  Store the result in `services`.
 
         :param processes: The processes defined by the project.
@@ -61,7 +62,7 @@ class _ServicesBuilder(object):
         :param services: The services where the services should be stored.
         :type services: dict.
         """
-        image = ImageBuilder(self.config).build(dir, push_image=False)
+        image = ImageBuilder(self.config).build(dir, push_image=push_image)
         for name, defn in processes.items():
             services[name] = {
                 'image': image, 'command': defn['script'],
@@ -113,13 +114,15 @@ class Deploy(Command):
             help="description of the release"
             )
         parser.add_argument(
-            '--rate'
+            '--rate',
+            help="migration rate"
             )
         parser.add_argument(
             '--no-push',
-            dest='push_images',
+            dest='push_image',
             default=True,
-            action='store_false'
+            action='store_false',
+            help="do not push built image to registry"
             )
         return parser
 
@@ -131,8 +134,12 @@ class Deploy(Command):
             self.app.config.formation)
 
         services = _ServicesBuilder(
-            self.app.config, self.app.service_manager).build(defn)
+            self.app.config, self.app.service_manager).build(
+                defn, push_image=options.push_image)
         name = formation.release(
-            self.app.config.formation, options.author, options.message,
-            services)
+            options.author,
+            options.message,
+            services,
+            merge_env=True
+            )
         formation.migrate(name, rate)

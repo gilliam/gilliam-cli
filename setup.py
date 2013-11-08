@@ -43,6 +43,8 @@ setup(
             'env = gilliam_cli.commands.env:Show',
             'set = gilliam_cli.commands.env:Set',
             'unset = gilliam_cli.commands.env:Unset',
+            'releases = gilliam_cli.commands.releases:Releases',
+            'dump release = gilliam_cli.commands.releases:DumpRelease',
             ],
         'gilliam.services': [
             'etcd = gilliam_cli.services.etcd:EtcdService'
