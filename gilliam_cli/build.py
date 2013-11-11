@@ -160,7 +160,7 @@ class ImageBuilder(object):
         self.repository = make_repository(self.config, self.config.formation)
         self.tag = _compute_tag(dir)
 
-        self.log.info("start building image {0}:{1}...".format(
+        self.log.info("start building image {0}:{1} ...".format(
             self.repository, self.tag))
         with _stream_tarball(dir) as process:
             reader = iter(partial(process.stdout.read, self._CHUNK_SIZE), '')
