@@ -72,7 +72,7 @@ class Route(Command):
 
         domain, path = self._parse_route(options.route)
         route = router.create(shortuuid.uuid(), domain, path, options.target)
-        self.app.stdout.write('route {0} created'.format(route['name']))
+        self.app.stdout.write('route {0}\n'.format(route['name']))
 
     def take_action(self, options):
         router = self.app.config.router()
