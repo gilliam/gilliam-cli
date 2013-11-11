@@ -59,7 +59,6 @@ class Formation(object):
         while True:
             current = self.last_release
             try:
-                print "RELEASE", current, services
                 response = self.client.create_release(
                     self.formation, self._name_release(current),
                     author or getpass.getuser(), message,
