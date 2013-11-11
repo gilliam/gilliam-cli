@@ -142,4 +142,5 @@ class Deploy(Command):
             services,
             merge_env=True
             )
+        self.app.stdout.write('release {0}\n'.format(name))
         formation.migrate(name, rate)
