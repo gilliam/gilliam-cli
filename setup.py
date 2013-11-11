@@ -47,7 +47,8 @@ setup(
             'dump release = gilliam_cli.commands.releases:DumpRelease',
             ],
         'gilliam.services': [
-            'etcd = gilliam_cli.services.etcd:EtcdService'
+            'etcd = gilliam_cli.services.etcd:EtcdService',
+            'redis = gilliam_cli.services.redis:RedisService'
             ],
         'cliff.formatter.list': [
             'simple-table = gilliam_cli.formatter:SimpleTableFormatter'
