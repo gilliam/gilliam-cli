@@ -23,10 +23,8 @@ from ..command import Command
 _INITIAL_RELEASE_NAME = '1'
 
 
-class Create(Command):
-    """Create a new formation."""
-
-    requires = {'project_dir': True}
+class Launch(Command):
+    """Launch a new formation from an existing release manifest."""
 
     def get_parser(self, prog_name):
         parser = Command.get_parser(self, prog_name)
@@ -36,24 +34,15 @@ class Create(Command):
             )
         parser.add_argument(
             'release',
-            nargs='?',
             help="release manifest"
             )
         return parser
 
     def take_action(self, options):
+        release = self._read_release(options.release)
         scheduler = self.app.config.scheduler()
         formation = scheduler.create_formation(options.formation)
-
-        form_config = FormationConfig.make(self.app.config.project_dir)
-        form_config.formation = formation['name']
-
-        if self.app.options.stage:
-            form_config.stage = self.app.options.stage
-
-        if options.release:
-            release = self._read_release(options.release)
-            scheduler.create_release(
+        scheduler.create_release(
                 options.formation, _INITIAL_RELEASE_NAME,
                 release.get('author', 'unknown'),
                 release.get('message', ''),
@@ -69,3 +58,27 @@ class Create(Command):
         else:
             with open(fn) as fp:
                 return yaml.load(fp)
+
+
+class Create(Command):
+    """Create a new formation."""
+
+    requires = {'project_dir': True}
+
+    def get_parser(self, prog_name):
+        parser = Command.get_parser(self, prog_name)
+        parser.add_argument(
+            'formation',
+            help="name of the formation to create"
+            )
+        return parser
+
+    def take_action(self, options):
+        scheduler = self.app.config.scheduler()
+        formation = scheduler.create_formation(options.formation)
+
+        form_config = FormationConfig.make(self.app.config.project_dir)
+        form_config.formation = formation['name']
+
+        if self.app.options.stage:
+            form_config.stage = self.app.options.stage

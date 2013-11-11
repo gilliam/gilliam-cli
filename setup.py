@@ -33,6 +33,7 @@ setup(
     entry_points={
         'gilliam.commands': [
             'create = gilliam_cli.commands.formation:Create',
+            'launch = gilliam_cli.commands.formation:Launch',
             'ps = gilliam_cli.commands.processes:ProcessStatus',
             'scale = gilliam_cli.commands.processes:Scale',
             'spawn = gilliam_cli.commands.processes:Spawn',
