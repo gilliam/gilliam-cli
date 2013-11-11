@@ -116,6 +116,14 @@ class Spawn(Command):
 
         return parser
 
+    def _find_service(self, release, name):
+        service = release['services'].get(name)
+        if service is None:
+            sys.exit("%s: no such service" % (name,))
+        return (service['image'], service['command'],
+                service.get('env', {}),
+                service.get('ports', []))
+
     def take_action(self, options):
         scheduler = self.app.config.scheduler()
         formation = Scheduler(scheduler).formation(
