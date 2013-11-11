@@ -25,7 +25,7 @@ class ProcessStatus(ListerCommand):
 
     requires = {'formation': True}
 
-    FIELDS = ('name', 'release', 'state', 'assigned_to', 'image', 'command')
+    FIELDS = ('name', 'release', 'state', 'status', 'reason', 'assigned_to', 'image', 'command')
 
     def take_action(self, options):
         def it(scheduler):
