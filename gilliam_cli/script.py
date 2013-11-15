@@ -64,8 +64,7 @@ class GilliamApp(App):
                 StageConfig.make(self.options.stage) if self.options.stage else
                 StageConfig.default())
         except EnvironmentError as err:
-            sys.exit("%s: cannot read stage config: %s" % (
-                self.options.stage, err))
+            stage_config = None
 
         auth_path = os.path.expanduser('~/.gilliam/auth')
         auth_config = AuthConfig.make(auth_path)
@@ -119,6 +118,9 @@ class GilliamApp(App):
         if requires.get('project_dir'):
             if not self.config.project_dir:
                 sys.exit("no project dir; specify using --project-dir")
+        if requires.get('stage'):
+            if not self.config.stage_config:
+                sys.exit("no stage")
 
 
 def main(argv=sys.argv[1:]):

@@ -204,7 +204,7 @@ class StageConfig(object):
         :raises: `SystemExit` if the configuration do not check out.
         """
         if not 'service_registry' in self._config:
-            sys.exit("cannot find address to service registry")
+            raise EnvironmentError("no service registry")
 
     @classmethod
     def make(cls, stage):
@@ -419,20 +419,37 @@ class Config(object):
         self.auth_config = auth_config
         self.stage = stage
         self.formation = formation
+        self._httpclient = None
+        self._service_registry = None
+        self.scheduler = lambda *a, **kw: SchedulerClient(self.httpclient, *a, **kw)
+        self.executor = lambda *a, **kw: ExecutorClient(self.httpclient, *a, **kw)
+        self.builder = lambda *a, **kw: BuilderClient(self.httpclient, *a, **kw)
+        self.router = lambda *a, **kw: RouterClient(self.httpclient, *a, **kw)
 
-        self.httpclient = requests.Session()
-        self.service_registry = ServiceRegistryClient(
-            time, stage_config.service_registry)
-        self._resolver = Resolver(self.service_registry)
-        self.httpclient.mount('http://', ResolveAdapter(HTTPAdapter(),
-                                                        self._resolver))
-        self.httpclient.mount('ws://', ResolveAdapter(WebSocketAdapter(),
-                                                      self._resolver))
+    def _make_httpclient(self):
+        if self.stage_config is None:
+            raise RuntimeError("need stage config for communication")
+        resolver = Resolver(ServiceRegistryClient(
+                time, self.stage_config.service_registry))
+        httpclient = requests.Session()
+        httpclient.mount('http://', ResolveAdapter(HTTPAdapter(), resolver))
+        httpclient.mount('ws://', ResolveAdapter(WebSocketAdapter(), resolver))
+        return httpclient
 
-        self.scheduler = partial(SchedulerClient, self.httpclient)
-        self.executor = partial(ExecutorClient, self.httpclient)
-        self.builder = partial(BuilderClient, self.httpclient)
-        self.router = partial(RouterClient, self.httpclient)
+    @property
+    def service_registry(self):
+        if self.stage_config is None:
+            raise RuntimeError("need stage config for communication")
+        if not self._service_registry:
+            self._service_registry = ServiceRegistryClient(
+                time, self.stage_config.service_registry)
+        return self._service_registry
+
+    @property
+    def httpclient(self):
+        if self._httpclient is None:
+            self._httpclient = self._make_httpclient()
+        return self._httpclient
 
     @classmethod
     def make(cls, project_dir, stage_config, form_config, auth_config,
