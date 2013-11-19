@@ -45,6 +45,7 @@ setup(
             'set = gilliam_cli.commands.env:Set',
             'unset = gilliam_cli.commands.env:Unset',
             'releases = gilliam_cli.commands.releases:Releases',
+            'auth = gilliam_cli.commands.auth:Auth',
             'dump release = gilliam_cli.commands.releases:DumpRelease',
             ],
         'gilliam.services': [
